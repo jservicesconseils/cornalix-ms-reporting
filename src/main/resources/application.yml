@@ -20,6 +20,49 @@ cornalix:
   scoring:
     base-url: ${SCORING_BASE_URL:http://localhost:8083}
 
+# SCRUM-49 : retry + circuit breaker sur les appels HTTP vers
+# cornalix-ms-diagnostic et cornalix-ms-scoring. Instances separees pour
+# que la panne de l'un n'ouvre pas le circuit de l'autre.
+resilience4j:
+  retry:
+    instances:
+      diagnosticClient:
+        max-attempts: 3
+        wait-duration: 200ms
+        enable-exponential-backoff: true
+        exponential-backoff-multiplier: 2
+        retry-exceptions:
+          - ca.cornalix.reporting.client.UpstreamServiceUnavailableException
+        ignore-exceptions:
+          - io.github.resilience4j.circuitbreaker.CallNotPermittedException
+      scoringClient:
+        max-attempts: 3
+        wait-duration: 200ms
+        enable-exponential-backoff: true
+        exponential-backoff-multiplier: 2
+        retry-exceptions:
+          - ca.cornalix.reporting.client.UpstreamServiceUnavailableException
+        ignore-exceptions:
+          - io.github.resilience4j.circuitbreaker.CallNotPermittedException
+  circuitbreaker:
+    instances:
+      diagnosticClient:
+        sliding-window-size: 10
+        minimum-number-of-calls: 5
+        failure-rate-threshold: 50
+        wait-duration-in-open-state: 10s
+        permitted-number-of-calls-in-half-open-state: 3
+        record-exceptions:
+          - ca.cornalix.reporting.client.UpstreamServiceUnavailableException
+      scoringClient:
+        sliding-window-size: 10
+        minimum-number-of-calls: 5
+        failure-rate-threshold: 50
+        wait-duration-in-open-state: 10s
+        permitted-number-of-calls-in-half-open-state: 3
+        record-exceptions:
+          - ca.cornalix.reporting.client.UpstreamServiceUnavailableException
+
 management:
   endpoints:
     web:
