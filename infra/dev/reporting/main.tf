@@ -57,7 +57,7 @@ resource "aws_ecs_task_definition" "reporting" {
 
       environment = [
         { name = "SPRING_PROFILES_ACTIVE", value = "prod" },
-        { name = "CORNALIX_CORS_ALLOWED_ORIGINS", value = "https://${data.terraform_remote_state.frontend_dev.outputs.cloudfront_domain_name}" },
+        { name = "CORNALIX_CORS_ALLOWED_ORIGINS", value = "https://${data.terraform_remote_state.frontend_dev.outputs.cloudfront_domain_name},https://${data.terraform_remote_state.frontend_dev.outputs.custom_domain_name}" },
         { name = "DIAGNOSTIC_BASE_URL", value = "https://${var.diagnostic_hostname}" },
         { name = "SCORING_BASE_URL", value = "https://${var.scoring_hostname}" },
       ]
